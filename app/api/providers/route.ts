@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       type,
       description,
       status: status ?? "ACTIVE",
-      config: config ? encryptConfig(config as ProviderConfig) : {},
+      config: config ? (encryptConfig(config as ProviderConfig) as object) : {},
     },
   });
 

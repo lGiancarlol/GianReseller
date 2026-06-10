@@ -18,16 +18,31 @@ model User {
 }
 
 model Provider {
-  id          String       @id @default(cuid())
-  name        String
-  type        ProviderType
-  description String?
-  status      Status       @default(ACTIVE)
-  config      Json?        // Almacena token, apiKey, chatId, baseUrl, headers, sessionString, etc.
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id           String       @id @default(cuid())
+  name         String
+  type         ProviderType
+  description  String?
+  status       Status       @default(ACTIVE)
+  config       Json?        // Almacena token, apiKey, chatId, baseUrl, headers, sessionString, etc.
+  lastTestedAt DateTime?
+  lastTestOk   Boolean?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   requests LicenseRequest[]
+  products ProviderProduct[]
+}
+
+model ProviderProduct {
+  id         String   @id @default(cuid())
+  providerId String
+  name       String
+  externalId String?
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
 }
 
 model Reseller {
@@ -104,6 +119,7 @@ enum LogAction {
   PROVIDER_ACTIVATED
   PROVIDER_DEACTIVATED
   PROVIDER_TEST
+  PROVIDER_TEST_FAIL
   PROVIDER_ERROR
   PROVIDER_RESPONSE
   RESELLER_CREATED

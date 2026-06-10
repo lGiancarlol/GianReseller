@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import ProviderForm from "@/components/providers/ProviderForm";
@@ -22,6 +23,7 @@ const TYPE_OPTIONS: { value: string; label: string }[] = [
 ];
 
 export default function ProvidersClient() {
+  const router = useRouter();
   const [providers, setProviders] = useState<Provider[]>([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
@@ -175,9 +177,8 @@ export default function ProvidersClient() {
                   </td>
                   <td style={{ padding: "0.75rem 1rem" }}>
                     <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
-                      <Button size="sm" variant="secondary" onClick={() => openEdit(p)}>
-                        Editar
-                      </Button>
+                      <Button size="sm" variant="secondary" onClick={() => router.push(`/dashboard/providers/${p.id}`)}>Ver</Button>
+                      <Button size="sm" variant="secondary" onClick={() => openEdit(p)}>Editar</Button>
                       <Button
                         size="sm"
                         variant="ghost"

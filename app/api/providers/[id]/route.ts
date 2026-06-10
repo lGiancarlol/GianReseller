@@ -14,10 +14,21 @@ export async function GET(_req: NextRequest, { params }: Params) {
   const provider = await prisma.provider.findUnique({ where: { id } });
   if (!provider) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
-  // Enmascarar campos sensibles antes de enviar al cliente
+  // Obtener productos y logs recientes en paralelo
+  const [products, logs] = await Promise.all([
+    prisma.providerProduct.findMany({ where: { providerId: id }, orderBy: { createdAt: "asc" } }),
+    prisma.log.findMany({
+      where: { metadata: { path: ["providerId"], equals: id } },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+  ]);
+
   return NextResponse.json({
     ...provider,
     config: provider.config ? maskConfig(provider.config as ProviderConfig) : null,
+    products,
+    logs,
   });
 }
 
@@ -60,7 +71,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
   const updated = await prisma.provider.update({
     where: { id },
-    data: { name, type, description, status, config: finalConfig },
+    data: { name, type, description, status, config: finalConfig as object },
   });
 
   const statusChanged = existing.status !== status;

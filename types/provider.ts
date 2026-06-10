@@ -32,3 +32,28 @@ export interface ProviderFormData {
   status: ProviderStatus;
   config: ProviderConfig;
 }
+
+export interface ProviderProduct {
+  id: string;
+  providerId: string;
+  name: string;
+  externalId: string | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProviderLog {
+  id: string;
+  action: string;
+  message: string;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface ProviderDetail extends Provider {
+  products: ProviderProduct[];
+  logs: ProviderLog[];
+  lastTestedAt: string | null;
+  lastTestOk: boolean | null;
+}
