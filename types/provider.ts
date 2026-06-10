@@ -8,6 +8,8 @@ export interface ProviderConfig {
   apiUrl?: string;
   apiKey?: string;
   sessionString?: string;
+  password?: string;
+  bearerToken?: string;
   headers?: Record<string, string>;
   customJson?: string;
 }

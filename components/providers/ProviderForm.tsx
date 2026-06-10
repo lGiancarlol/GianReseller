@@ -6,6 +6,8 @@ import Field, { fieldInput, fieldSelect } from "@/components/ui/Field";
 import Button from "@/components/ui/Button";
 import type { Provider, ProviderFormData, ProviderType } from "@/types/provider";
 
+const MASK = "********";
+
 const PROVIDER_TYPES: { value: ProviderType; label: string }[] = [
   { value: "TELEGRAM_BOT", label: "Telegram Bot" },
   { value: "KEYAUTH", label: "KeyAuth" },
@@ -21,6 +23,55 @@ interface Props {
 
 function emptyForm(): ProviderFormData {
   return { name: "", type: "TELEGRAM_BOT", description: "", status: "ACTIVE", config: {} };
+}
+
+// Componente de input para campos sensibles
+// Si el valor almacenado es la mascara, muestra placeholder especial
+// y solo envia el nuevo valor si el usuario escribe algo
+function SecretInput({
+  storedValue,
+  onChange,
+  placeholder,
+}: {
+  storedValue: string;
+  onChange: (val: string) => void;
+  placeholder: string;
+}) {
+  const isMasked = storedValue === MASK;
+  const [touched, setTouched] = useState(false);
+
+  // Si el campo esta enmascarado y el usuario no ha tocado el campo,
+  // mostramos un input vacio con placeholder descriptivo
+  if (isMasked && !touched) {
+    return (
+      <div style={{ position: "relative" }}>
+        <input
+          style={{ ...fieldInput, color: "var(--text-muted)" }}
+          value=""
+          placeholder={`${MASK} (dejar vacio para conservar)`}
+          onFocus={() => setTouched(true)}
+          onChange={() => {}}
+          readOnly={false}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <input
+      style={fieldInput}
+      value={isMasked && touched ? "" : storedValue}
+      placeholder={placeholder}
+      onChange={(e) => {
+        const val = e.target.value;
+        // Si el usuario borra todo, volver a la mascara para conservar el valor
+        onChange(val === "" && isMasked ? MASK : val);
+      }}
+      onBlur={() => {
+        if (storedValue === "") setTouched(false);
+      }}
+    />
+  );
 }
 
 export default function ProviderForm({ provider, onClose, onSaved }: Props) {
@@ -70,6 +121,8 @@ export default function ProviderForm({ provider, onClose, onSaved }: Props) {
     onSaved();
     onClose();
   }
+
+  const cfg = form.config;
 
   return (
     <Modal title={isEdit ? "Editar Provider" : "Nuevo Provider"} onClose={onClose} width={560}>
@@ -129,27 +182,25 @@ export default function ProviderForm({ provider, onClose, onSaved }: Props) {
 
           {form.type === "TELEGRAM_BOT" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              <Field label="Bot Token">
-                <input
-                  style={fieldInput}
-                  value={form.config.botToken ?? ""}
-                  onChange={(e) => setConfig("botToken", e.target.value)}
+              <Field label="Bot Token" hint="Sensible: se almacena cifrado">
+                <SecretInput
+                  storedValue={cfg.botToken ?? ""}
+                  onChange={(v) => setConfig("botToken", v)}
                   placeholder="123456:ABCdef..."
                 />
               </Field>
               <Field label="Chat ID">
                 <input
                   style={fieldInput}
-                  value={form.config.chatId ?? ""}
+                  value={cfg.chatId ?? ""}
                   onChange={(e) => setConfig("chatId", e.target.value)}
                   placeholder="-100123456789"
                 />
               </Field>
-              <Field label="Session String" hint="Opcional, para bots con sesion de usuario">
-                <input
-                  style={fieldInput}
-                  value={form.config.sessionString ?? ""}
-                  onChange={(e) => setConfig("sessionString", e.target.value)}
+              <Field label="Session String" hint="Sensible: se almacena cifrado">
+                <SecretInput
+                  storedValue={cfg.sessionString ?? ""}
+                  onChange={(v) => setConfig("sessionString", v)}
                   placeholder="Session string (opcional)"
                 />
               </Field>
@@ -161,16 +212,15 @@ export default function ProviderForm({ provider, onClose, onSaved }: Props) {
               <Field label="API URL">
                 <input
                   style={fieldInput}
-                  value={form.config.apiUrl ?? ""}
+                  value={cfg.apiUrl ?? ""}
                   onChange={(e) => setConfig("apiUrl", e.target.value)}
                   placeholder="https://keyauth.win/api/1.2/"
                 />
               </Field>
-              <Field label="API Key">
-                <input
-                  style={fieldInput}
-                  value={form.config.apiKey ?? ""}
-                  onChange={(e) => setConfig("apiKey", e.target.value)}
+              <Field label="API Key" hint="Sensible: se almacena cifrado">
+                <SecretInput
+                  storedValue={cfg.apiKey ?? ""}
+                  onChange={(v) => setConfig("apiKey", v)}
                   placeholder="API Key de KeyAuth"
                 />
               </Field>
@@ -182,23 +232,22 @@ export default function ProviderForm({ provider, onClose, onSaved }: Props) {
               <Field label="API URL">
                 <input
                   style={fieldInput}
-                  value={form.config.apiUrl ?? ""}
+                  value={cfg.apiUrl ?? ""}
                   onChange={(e) => setConfig("apiUrl", e.target.value)}
                   placeholder="https://api.proveedor.com/v1"
                 />
               </Field>
-              <Field label="API Key">
-                <input
-                  style={fieldInput}
-                  value={form.config.apiKey ?? ""}
-                  onChange={(e) => setConfig("apiKey", e.target.value)}
+              <Field label="API Key / Bearer Token" hint="Sensible: se almacena cifrado">
+                <SecretInput
+                  storedValue={cfg.apiKey ?? ""}
+                  onChange={(v) => setConfig("apiKey", v)}
                   placeholder="Bearer token o API key"
                 />
               </Field>
-              <Field label='Headers personalizados (JSON)' hint='Ejemplo: {"X-Custom": "valor"}'>
+              <Field label="Headers personalizados (JSON)" hint='Ejemplo: {"X-Custom": "valor"}'>
                 <textarea
                   style={{ ...fieldInput, resize: "vertical", minHeight: 72 }}
-                  value={form.config.customJson ?? ""}
+                  value={cfg.customJson ?? ""}
                   onChange={(e) => setConfig("customJson", e.target.value)}
                   placeholder='{"Authorization": "Bearer ...", "X-App-Id": "..."}'
                 />
@@ -211,23 +260,22 @@ export default function ProviderForm({ provider, onClose, onSaved }: Props) {
               <Field label="API URL">
                 <input
                   style={fieldInput}
-                  value={form.config.apiUrl ?? ""}
+                  value={cfg.apiUrl ?? ""}
                   onChange={(e) => setConfig("apiUrl", e.target.value)}
                   placeholder="URL del proveedor personalizado"
                 />
               </Field>
-              <Field label="API Key">
-                <input
-                  style={fieldInput}
-                  value={form.config.apiKey ?? ""}
-                  onChange={(e) => setConfig("apiKey", e.target.value)}
+              <Field label="API Key" hint="Sensible: se almacena cifrado">
+                <SecretInput
+                  storedValue={cfg.apiKey ?? ""}
+                  onChange={(v) => setConfig("apiKey", v)}
                   placeholder="Token o clave de autenticacion"
                 />
               </Field>
-              <Field label="Configuracion JSON personalizada" hint="Cualquier parametro adicional en formato JSON">
+              <Field label="Configuracion JSON personalizada" hint="Parametros adicionales en formato JSON">
                 <textarea
                   style={{ ...fieldInput, resize: "vertical", minHeight: 90 }}
-                  value={form.config.customJson ?? ""}
+                  value={cfg.customJson ?? ""}
                   onChange={(e) => setConfig("customJson", e.target.value)}
                   placeholder='{"param1": "valor", "param2": "valor"}'
                 />

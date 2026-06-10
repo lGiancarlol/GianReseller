@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { encryptConfig, maskConfig } from "@/lib/crypto";
+import type { ProviderConfig } from "@/types/provider";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -18,7 +20,13 @@ export async function GET(req: NextRequest) {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json(providers);
+  // Enmascarar campos sensibles antes de enviar al cliente
+  const masked = providers.map((p) => ({
+    ...p,
+    config: p.config ? maskConfig(p.config as ProviderConfig) : null,
+  }));
+
+  return NextResponse.json(masked);
 }
 
 export async function POST(req: NextRequest) {
@@ -33,7 +41,13 @@ export async function POST(req: NextRequest) {
   }
 
   const provider = await prisma.provider.create({
-    data: { name, type, description, status: status ?? "ACTIVE", config: config ?? {} },
+    data: {
+      name,
+      type,
+      description,
+      status: status ?? "ACTIVE",
+      config: config ? encryptConfig(config as ProviderConfig) : {},
+    },
   });
 
   await prisma.log.create({
