@@ -46,16 +46,32 @@ model ProviderProduct {
 }
 
 model Reseller {
-  id        String   @id @default(cuid())
-  name      String
-  username  String   @unique
-  password  String
-  status    Status   @default(ACTIVE)
-  credits   Float    @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  name        String
+  username    String   @unique
+  email       String?  @unique
+  discordId   String?
+  telegramId  String?
+  password    String
+  status      Status   @default(ACTIVE)
+  credits     Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  requests LicenseRequest[]
+  requests    LicenseRequest[]
+  movements   CreditMovement[]
+}
+
+model CreditMovement {
+  id          String         @id @default(cuid())
+  resellerId  String
+  type        MovementType
+  amount      Float
+  balanceAfter Float
+  note        String?
+  createdAt   DateTime       @default(now())
+
+  reseller    Reseller       @relation(fields: [resellerId], references: [id], onDelete: Cascade)
 }
 
 model LicenseRequest {
@@ -124,4 +140,14 @@ enum LogAction {
   PROVIDER_RESPONSE
   RESELLER_CREATED
   RESELLER_UPDATED
+  RESELLER_DELETED
+  RESELLER_CREDIT_ADDED
+  RESELLER_CREDIT_DEDUCTED
+}
+
+enum MovementType {
+  LOAD
+  DEDUCTION
+  PURCHASE
+  REFUND
 }
