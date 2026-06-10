@@ -12,6 +12,14 @@ export interface LicenseResult {
   raw?: unknown;
 }
 
+export interface CreateLicenseResult {
+  success: boolean;
+  licenseKey?: string;
+  externalId?: string;
+  raw?: unknown;
+  error?: string;
+}
+
 export interface LicenseQuery {
   success: boolean;
   found: boolean;
@@ -22,6 +30,7 @@ export interface LicenseQuery {
 // Contrato que todos los drivers deben implementar
 export interface IProvider {
   testConnection(): Promise<TestResult>;
+  createLicense(productId: string, externalId?: string): Promise<CreateLicenseResult>;
   requestLicense(product: string, duration: string, resellerRef?: string): Promise<LicenseResult>;
   queryLicense(licenseKey: string): Promise<LicenseQuery>;
   activateLicense(licenseKey: string, hwid?: string): Promise<LicenseResult>;

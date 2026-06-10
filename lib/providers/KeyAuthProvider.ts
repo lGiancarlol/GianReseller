@@ -1,4 +1,4 @@
-import type { IProvider, TestResult, LicenseResult, LicenseQuery } from "./BaseProvider";
+import type { IProvider, TestResult, LicenseResult, LicenseQuery, CreateLicenseResult } from "./BaseProvider";
 import { notImplemented, notImplementedQuery } from "./BaseProvider";
 import { decryptConfig } from "@/lib/crypto";
 import type { ProviderConfig } from "@/types/provider";
@@ -38,6 +38,15 @@ export class KeyAuthProvider implements IProvider {
         latencyMs: Date.now() - start,
       };
     }
+  }
+
+  async createLicense(productId: string, externalId?: string): Promise<CreateLicenseResult> {
+    return {
+      success: true,
+      licenseKey: `KA-${productId.slice(0, 6).toUpperCase()}-${Date.now()}`,
+      externalId: externalId ?? `ka_sim_${Date.now()}`,
+      raw: { simulated: true, provider: "keyauth" },
+    };
   }
 
   async requestLicense(_product: string, _duration: string): Promise<LicenseResult> {

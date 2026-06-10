@@ -7,11 +7,8 @@ import { signOut } from "next-auth/react";
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/dashboard/providers", label: "Providers" },
-  { href: "/dashboard/users", label: "Users" },
   { href: "/dashboard/resellers", label: "Resellers" },
-  { href: "/dashboard/requests", label: "License Requests" },
-  { href: "/dashboard/logs", label: "Logs" },
-  { href: "/dashboard/settings", label: "Settings" },
+  { href: "/dashboard/license-requests", label: "License Requests" },
 ];
 
 export default function Sidebar() {
@@ -42,7 +39,7 @@ export default function Sidebar() {
 
       <nav style={{ flex: 1, padding: "1rem 0" }}>
         {NAV_ITEMS.map((item) => {
-          const active = pathname === item.href;
+          const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
           return (
             <Link
               key={item.href}

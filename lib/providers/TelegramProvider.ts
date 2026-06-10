@@ -1,4 +1,4 @@
-import type { IProvider, TestResult, LicenseResult, LicenseQuery } from "./BaseProvider";
+import type { IProvider, TestResult, LicenseResult, LicenseQuery, CreateLicenseResult } from "./BaseProvider";
 import { notImplemented, notImplementedQuery } from "./BaseProvider";
 import { decryptConfig } from "@/lib/crypto";
 import type { ProviderConfig } from "@/types/provider";
@@ -85,7 +85,17 @@ export class TelegramProvider implements IProvider {
   }
 
   // Los metodos de licencia via Telegram dependen del flujo de mensajes
-  // que se implementara en la Fase 4 (License Requests)
+  // que se implementara en integracion real futura
+  async createLicense(productId: string, externalId?: string): Promise<CreateLicenseResult> {
+    // Simulacion: genera una key de prueba hasta integracion real con bot
+    return {
+      success: true,
+      licenseKey: `TG-${productId.slice(0, 6).toUpperCase()}-${Date.now()}`,
+      externalId: externalId ?? `tg_sim_${Date.now()}`,
+      raw: { simulated: true, provider: "telegram" },
+    };
+  }
+
   async requestLicense(_product: string, _duration: string): Promise<LicenseResult> {
     return notImplemented("requestLicense via Telegram");
   }

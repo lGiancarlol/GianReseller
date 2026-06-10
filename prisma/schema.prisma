@@ -43,6 +43,7 @@ model ProviderProduct {
   updatedAt  DateTime @updatedAt
 
   provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  requests LicenseRequest[]
 }
 
 model Reseller {
@@ -63,32 +64,39 @@ model Reseller {
 }
 
 model CreditMovement {
-  id          String         @id @default(cuid())
-  resellerId  String
-  type        MovementType
-  amount      Float
+  id           String         @id @default(cuid())
+  resellerId   String
+  type         MovementType
+  amount       Float
   balanceAfter Float
-  note        String?
-  createdAt   DateTime       @default(now())
+  note         String?
+  requestId    String?
+  createdAt    DateTime       @default(now())
 
-  reseller    Reseller       @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+  reseller     Reseller       @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+  request      LicenseRequest? @relation(fields: [requestId], references: [id])
 }
 
 model LicenseRequest {
-  id           String        @id @default(cuid())
-  resellerId   String
-  providerId   String
-  product      String
-  duration     String
-  status       RequestStatus @default(PENDING)
-  licenseKey   String?
-  providerResp Json?
-  createdAt    DateTime      @default(now())
+  id                 String        @id @default(cuid())
+  resellerId         String
+  providerId         String
+  productId          String
+  status             RequestStatus @default(PENDING)
+  externalRequestId  String?
+  licenseKey         String?
+  responseData       Json?
+  creditsUsed        Float         @default(0)
+  errorMessage       String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 
-  reseller Reseller @relation(fields: [resellerId], references: [id])
-  provider Provider @relation(fields: [providerId], references: [id])
+  reseller  Reseller        @relation(fields: [resellerId], references: [id])
+  provider  Provider        @relation(fields: [providerId], references: [id])
+  product   ProviderProduct @relation(fields: [productId], references: [id])
 
-  logs Log[]
+  logs      Log[]
+  movements CreditMovement[]
 }
 
 model Log {
@@ -121,6 +129,7 @@ enum ProviderType {
 
 enum RequestStatus {
   PENDING
+  PROCESSING
   SUCCESS
   FAILED
 }
@@ -143,6 +152,10 @@ enum LogAction {
   RESELLER_DELETED
   RESELLER_CREDIT_ADDED
   RESELLER_CREDIT_DEDUCTED
+  LICENSE_REQUEST_CREATED
+  LICENSE_REQUEST_SUCCESS
+  LICENSE_REQUEST_FAILED
+  LICENSE_REFUND_CREATED
 }
 
 enum MovementType {
