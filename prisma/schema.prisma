@@ -18,16 +18,14 @@ model User {
 }
 
 model Provider {
-  id        String       @id @default(cuid())
-  name      String
-  type      ProviderType
-  status    Status       @default(ACTIVE)
-  baseUrl   String?
-  token     String?
-  apiKey    String?
-  chatId    String?
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  id          String       @id @default(cuid())
+  name        String
+  type        ProviderType
+  description String?
+  status      Status       @default(ACTIVE)
+  config      Json?        // Almacena token, apiKey, chatId, baseUrl, headers, sessionString, etc.
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   requests LicenseRequest[]
 }
@@ -100,6 +98,12 @@ enum LogAction {
   LICENSE_CREATED
   LICENSE_DELETED
   HWID_RESET
+  PROVIDER_CREATED
+  PROVIDER_UPDATED
+  PROVIDER_DELETED
+  PROVIDER_ACTIVATED
+  PROVIDER_DEACTIVATED
+  PROVIDER_TEST
   PROVIDER_ERROR
   PROVIDER_RESPONSE
   RESELLER_CREATED
