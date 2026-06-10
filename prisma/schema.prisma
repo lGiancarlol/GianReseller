@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Provider {
+  id        String       @id @default(cuid())
+  name      String
+  type      ProviderType
+  status    Status       @default(ACTIVE)
+  baseUrl   String?
+  token     String?
+  apiKey    String?
+  chatId    String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  requests LicenseRequest[]
+}
+
+model Reseller {
+  id        String   @id @default(cuid())
+  name      String
+  username  String   @unique
+  password  String
+  status    Status   @default(ACTIVE)
+  credits   Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  requests LicenseRequest[]
+}
+
+model LicenseRequest {
+  id           String        @id @default(cuid())
+  resellerId   String
+  providerId   String
+  product      String
+  duration     String
+  status       RequestStatus @default(PENDING)
+  licenseKey   String?
+  providerResp Json?
+  createdAt    DateTime      @default(now())
+
+  reseller Reseller @relation(fields: [resellerId], references: [id])
+  provider Provider @relation(fields: [providerId], references: [id])
+
+  logs Log[]
+}
+
+model Log {
+  id         String      @id @default(cuid())
+  action     LogAction
+  message    String
+  metadata   Json?
+  requestId  String?
+  createdAt  DateTime    @default(now())
+
+  request LicenseRequest? @relation(fields: [requestId], references: [id])
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+enum ProviderType {
+  TELEGRAM_BOT
+  KEYAUTH
+  REST_API
+  CUSTOM
+}
+
+enum RequestStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum LogAction {
+  LICENSE_CREATED
+  LICENSE_DELETED
+  HWID_RESET
+  PROVIDER_ERROR
+  PROVIDER_RESPONSE
+  RESELLER_CREATED
+  RESELLER_UPDATED
+}
